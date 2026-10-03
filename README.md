@@ -78,7 +78,9 @@ cargo test
 
 ---
 
-## 🎬 Scénario de Démonstration (Demo Video & Presentation)
+## 🎬 Vidéo de Démonstration (Demo Video)
+
+🎥 **Fichier vidéo de démonstration incluse dans le dépôt** : `demo.webm` (ou [demo.webm](file:///home/dorine/Music/lightning-tool/demo.webm))
 
 1. **Démarrage** : Exécuter `cargo run` dans le terminal.
 2. **Étape 1 (Onglet POS & AI Cart)** : Sélectionner des articles IA et cliquer sur `⚡ Generate Cart BOLT11 Invoice`.
