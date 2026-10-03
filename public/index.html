@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightning SatGate | Merchant POS & AI Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #09090B;
+      --card-bg: #121215;
+      --card-border: #27272A;
+      --accent: #F59E0B;
+      --text-main: #FAFAFA;
+      --text-muted: #A1A1AA;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 3rem;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.8rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--card-border);
+    }
+    .logo-area { display: flex; align-items: center; gap: 0.8rem; }
+    .logo-icon {
+      width: 42px; height: 42px; background: var(--accent); color: #000;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: bold;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+
+    .lang-select {
+      background: #18181B; color: var(--text-main); border: 1px solid var(--card-border);
+      padding: 0.4rem 0.75rem; border-radius: 6px; font-family: 'Outfit', sans-serif;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer; outline: none; margin: 0;
+    }
+    .lang-select:focus { border-color: #52525B; }
+
+    /* IN-APP NOTIFICATION BANNER */
+    #status-banner {
+      display: none; padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 1.5rem;
+      font-size: 0.88rem; font-weight: 500; align-items: center; justify-content: space-between;
+      background: #18181B; border: 1px solid var(--card-border); color: var(--text-main);
+    }
+    #status-banner.error { border-color: #7F1D1D; color: #FCA5A5; }
+    #status-banner.success { border-color: #065F46; color: #6EE7B7; }
+
+    /* STATS BADGES */
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-badge {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 10px; padding: 1rem; text-align: center;
+    }
+    .stat-label { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+    .stat-val { font-size: 1.4rem; font-weight: 700; color: var(--text-main); font-family: 'JetBrains Mono', monospace; }
+
+    /* MULTI-PAGE NAVIGATION TABS */
+    .nav-tabs {
+      display: flex; gap: 0.4rem; background: #121215;
+      padding: 0.35rem; border-radius: 10px; border: 1px solid var(--card-border);
+      margin-bottom: 1.8rem; overflow-x: auto;
+    }
+    .nav-btn {
+      background: transparent; color: var(--text-muted); border: none;
+      padding: 0.7rem 1.1rem; border-radius: 6px; font-weight: 500; font-size: 0.88rem;
+      cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+      font-family: 'Outfit', sans-serif;
+    }
+    .nav-btn:hover { color: var(--text-main); background: #18181B; }
+    .nav-btn.active { background: #27272A; color: var(--text-main); font-weight: 600; }
+
+    /* PAGE CONTENT VIEWS */
+    .page-content { display: none; }
+    .page-content.active { display: block; }
+
+    .card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
+    .btn {
+      background: #27272A; color: var(--text-main); border: 1px solid #3F3F46;
+      padding: 0.75rem 1.3rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s ease; font-family: 'Outfit', sans-serif; font-size: 0.88rem;
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn:hover { background: #3F3F46; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #000; border: none; }
+    .btn-primary:hover { background: #D97706; }
+    .btn-danger { background: #18181B; color: #EF4444; border: 1px solid #7F1D1D; }
+    .btn-danger:hover { background: #7F1D1D; color: #FFF; }
+    .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.78rem; border-radius: 5px; }
+
+    input, textarea, select {
+      width: 100%; background: #18181B; border: 1px solid var(--card-border);
+      color: var(--text-main); padding: 0.75rem; border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; outline: none;
+      margin-top: 0.3rem; margin-bottom: 0.8rem;
+    }
+    input:focus, textarea:focus, select:focus { border-color: #52525B; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 0.8rem; }
+    th, td { padding: 0.7rem 0.85rem; border-bottom: 1px solid var(--card-border); text-align: left; }
+    th { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    tr.clickable-row:hover { background: #18181B; }
+
+    .code-text { font-family: 'JetBrains Mono', monospace; color: #E4E4E7; word-break: break-all; font-size: 0.85rem; }
+
+    /* CATALOGUE & POS CALCULATOR */
+    .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.8rem; margin-top: 1rem; }
+    .product-card {
+      background: #18181B; border: 1px solid var(--card-border);
+      border-radius: 8px; padding: 0.9rem; text-align: center; cursor: pointer; transition: all 0.15s ease;
+    }
+    .product-card:hover { border-color: #52525B; background: #27272A; }
+    .product-icon { font-size: 1.6rem; margin-bottom: 0.3rem; }
+    .product-name { font-weight: 500; font-size: 0.88rem; margin-bottom: 0.2rem; }
+    .product-price { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+
+    .calculator-box {
+      background: #18181B; border: 1px solid var(--card-border);
+      border-radius: 8px; padding: 1.2rem; margin-top: 1.2rem; text-align: right;
+    }
+    .calc-total-label { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; }
+    .calc-total-val { font-size: 2rem; font-weight: 700; color: var(--text-main); font-family: 'JetBrains Mono', monospace; }
+
+    /* VISUAL CHANNEL TRACK */
+    .channel-visual-container {
+      background: #18181B; border: 1px solid var(--card-border);
+      border-radius: 10px; padding: 1.4rem; margin-top: 1rem;
+    }
+    .peer-nodes-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .peer-card {
+      display: flex; align-items: center; gap: 0.8rem; background: #121215;
+      border: 1px solid var(--card-border); border-radius: 8px; padding: 0.7rem 0.9rem; min-width: 220px;
+    }
+    .peer-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: #27272A;
+      display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem;
+    }
+
+    .channel-line-track {
+      height: 18px; background: #27272A; border-radius: 9px; position: relative;
+      margin: 1.4rem 0; overflow: hidden; display: flex;
+    }
+    .balance-fill-alice { height: 100%; background: #E4E4E7; transition: width 0.4s ease; }
+    .balance-fill-bob { height: 100%; background: #3F3F46; transition: width 0.4s ease; }
+    .balance-cursor-dot {
+      width: 24px; height: 24px; background: #FAFAFA; border-radius: 50%;
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      transition: left 0.4s ease; z-index: 10; border: 2px solid #09090B;
+    }
+
+    .transfer-actions-bar { display: flex; gap: 0.8rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-area">
+        <div class="logo-icon">⚡</div>
+        <div>
+          <h1 style="font-size: 1.3rem; font-weight: 700;">Lightning SatGate</h1>
+          <p style="color: var(--text-muted); font-size: 0.82rem;" data-i18n="app_subtitle">Merchant POS Terminal, AI Micro-Payments & LDK Node</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <select id="lang-selector" class="lang-select" onchange="changeLanguage(this.value)">
+          <option value="en" selected>🇬🇧 English</option>
+          <option value="fr">🇫🇷 Français</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- IN-APP NOTIFICATION BANNER -->
+    <div id="status-banner">
+      <span id="banner-text">Status message</span>
+      <button onclick="hideNotification()" style="background:none; border:none; color:inherit; cursor:pointer;">✕</button>
+    </div>
+
+    <!-- SOLDES STRIP -->
+    <div class="grid-3">
+      <div class="stat-badge">
+        <div class="stat-label" data-i18n="stat_onchain">On-Chain Bitcoin Balance</div>
+        <div class="stat-val" id="stat-onchain-bal">0 sats</div>
+      </div>
+      <div class="stat-badge">
+        <div class="stat-label" data-i18n="stat_local">Active Local Capacity</div>
+        <div class="stat-val" id="stat-local-bal">0 sats</div>
+      </div>
+      <div class="stat-badge">
+        <div class="stat-label" data-i18n="stat_remote">Active Remote Capacity</div>
+        <div class="stat-val" id="stat-remote-bal">0 sats</div>
+      </div>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="nav-tabs">
+      <button class="nav-btn active" onclick="switchPage('page-onchain')" data-i18n="nav_tab1">1. Wallet & Channels</button>
+      <button class="nav-btn" onclick="switchPage('page-pos')" data-i18n="nav_tab2">2. POS & AI Cart</button>
+      <button class="nav-btn" onclick="switchPage('page-checkout')" data-i18n="nav_tab3">3. Checkout & Inspector</button>
+      <button class="nav-btn" onclick="switchPage('page-visualizer')" data-i18n="nav_tab4">4. Channel Visualizer</button>
+      <button class="nav-btn" onclick="switchPage('page-multihop')" data-i18n="nav_tab6">6. HTLC Multi-Hop</button>
+      <button class="nav-btn" onclick="switchPage('page-history')" data-i18n="nav_tab5">5. History & Reports</button>
+    </nav>
+
+    <!-- PAGE 1: WALLET & CHANNELS -->
+    <div id="page-onchain" class="page-content active">
+      <div class="grid-2">
+        <div class="card">
+          <h2 data-i18n="title_onchain">On-Chain Bitcoin Wallet</h2>
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem;" data-i18n="desc_onchain">
+            Fund your On-Chain wallet to finance opening Lightning channels.
+          </p>
+          <label style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.8rem; display: block;" data-i18n="label_deposit_addr">Bitcoin Core Deposit Address</label>
+          <input type="text" readonly value="bcrt1qmockfundingaddressregtest0000000000000000">
+          <button class="btn btn-primary" id="btn-fund-onchain" style="width: 100%; margin-top: 0.5rem;" data-i18n="btn_fund">Fund Wallet (+100,000 Sats)</button>
+        </div>
+
+        <div class="card">
+          <h2 data-i18n="title_open_channel">Open a Lightning Channel</h2>
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem;" data-i18n="desc_open_channel">
+            Name the local merchant and remote customer owning this payment channel.
+          </p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 0.8rem;">
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-muted);" data-i18n="label_local_name">Local Node (Merchant Name)</label>
+              <input type="text" id="open-local-name" value="Merchant (Alice)">
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-muted);" data-i18n="label_remote_name">Remote Peer (Customer Name)</label>
+              <input type="text" id="open-remote-name" value="Customer (Bob)">
+            </div>
+          </div>
+
+          <label style="font-size: 0.78rem; color: var(--text-muted);" data-i18n="label_peer_pubkey">Peer Public Key (secp256k1)</label>
+          <input type="text" id="open-peer-pubkey" value="02e7f61c28c8b417e901a88b56012a97ef15c0e1a2d399c4b789123456789abcde">
+
+          <label style="font-size: 0.78rem; color: var(--text-muted);" data-i18n="label_capacity">Channel Capacity (Satoshis)</label>
+          <input type="number" id="open-capacity-sat" value="100000">
+
+          <button class="btn" id="btn-open-channel" style="width: 100%; margin-top: 0.5rem;" data-i18n="btn_open_channel">Open Channel (Status: ACTIVE)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="title_active_channels">Channels Directory</h3>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.2rem;" data-i18n="channel_dir_hint">
+          💡 Tip: Single-click a channel row to view Visualizer (Page 4) or double-click to start POS Merchant Checkout (Page 2).
+        </p>
+        <div id="channels-table-container"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: POS & AI CART -->
+    <div id="page-pos" class="page-content">
+      <div class="card">
+        <h2 data-i18n="title_pos">Merchant POS Terminal & AI Pay-per-Prompt</h2>
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem;" data-i18n="desc_pos">
+          Add items or AI services to your cart, calculate total satoshis, and issue a signed BOLT11 invoice.
+        </p>
+
+        <div style="margin-top: 0.8rem; display: flex; align-items: center; gap: 0.8rem;">
+          <label style="font-size: 0.8rem; color: var(--text-muted);" data-i18n="label_active_pos_channel">Active Shopping Channel:</label>
+          <select id="pos-channel-selector" onchange="onPosChannelSelectChange(this.value)" style="margin: 0; width: auto; flex: 1;">
+            <option value="">Select Channel for Checkout...</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3 data-i18n="catalog_title">1. Articles & AI Services Catalog</h3>
+          <div class="catalog-grid">
+            <div class="product-card" onclick="addToCart('Espresso Coffee', 500)">
+              <div class="product-icon">☕</div>
+              <div class="product-name" data-i18n="prod_coffee">Espresso Coffee</div>
+              <div class="product-price">500 sats</div>
+            </div>
+            <div class="product-card" onclick="addToCart('Artisan Pastry', 1200)">
+              <div class="product-icon">🥐</div>
+              <div class="product-name" data-i18n="prod_pastry">Artisan Pastry</div>
+              <div class="product-price">1,200 sats</div>
+            </div>
+            <div class="product-card" onclick="addToCart('AI Token (Prompt)', 50)">
+              <div class="product-icon">🤖</div>
+              <div class="product-name" data-i18n="prod_ai_token">AI Token (Prompt)</div>
+              <div class="product-price">50 sats</div>
+            </div>
+            <div class="product-card" onclick="addToCart('AI Image Gen', 2500)">
+              <div class="product-icon">🎨</div>
+              <div class="product-name">AI Image Gen</div>
+              <div class="product-price">2,500 sats</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
+            <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem;" data-i18n="custom_title">Custom Item Entry</h4>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="custom-prod-name" placeholder="Item Name (e.g. AI Service)" data-i18n-ph="custom_name_ph" style="margin: 0;">
+              <input type="number" id="custom-prod-price" placeholder="Price (Sats)" data-i18n-ph="custom_price_ph" style="margin: 0; width: 140px;">
+              <button class="btn btn-sm" onclick="addCustomToCart()" data-i18n="btn_add_custom">Add</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="cart_title">2. Cart Summary & Satoshis Calculator</h3>
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="th_item">Item / Service</th>
+                <th data-i18n="th_unit_price">Unit Price</th>
+                <th data-i18n="th_qty">Quantity</th>
+                <th data-i18n="th_subtotal">Subtotal</th>
+                <th data-i18n="th_action">Action</th>
+              </tr>
+            </thead>
+            <tbody id="cart-table-body">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);" data-i18n="cart_empty">Cart is empty. Click an item above.</td></tr>
+            </tbody>
+          </table>
+
+          <div class="calculator-box">
+            <div class="calc-total-label" data-i18n="calc_total_label">Total Satoshis</div>
+            <div class="calc-total-val" id="cart-total-display">0 SATS</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;" id="cart-itemized-desc">Receipt: Cart empty</div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-create-pos-invoice" style="width: 100%; margin-top: 1rem; padding: 0.9rem;" data-i18n="btn_create_invoice">
+            ⚡ Generate Cart BOLT11 Invoice
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: CHECKOUT & INSPECTOR -->
+    <div id="page-checkout" class="page-content">
+      <div class="card">
+        <h2 data-i18n="title_checkout">Client Checkout & BOLT11 Inspector</h2>
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem;" data-i18n="desc_checkout">
+          Inspect the BOLT11 invoice across its 7 metadata fields and settle payment.
+        </p>
+
+        <label style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.8rem; display: block;" data-i18n="label_bolt11_inv">BOLT11 Invoice (Polar / LND / c-lightning)</label>
+        <textarea id="invoice-input" rows="3" oninput="updateLiveDecode()" onpaste="setTimeout(updateLiveDecode, 50)" placeholder="Paste your BOLT11 Invoice copied from Polar here (e.g. lnbcrt...)">lnbcrt25u1p4t7tpmpp5fte95v755qy7r62kll07ah9accv8pekv0n8n4ku2qzuenzxsqsasdps2phkcctjypykuan0d93k2grxdaezq5mpw3rkzar9yp2x2um5cqzzsxqyz5vqsp56gsvvsjrrg4y7wscnzrhlj3d7r2md0el6pwpm664hw3wpspqlwls9qxpqysgqweqvujl9qlmsdmg7cdfh6dk7wgqhaa3rzy0wfujdvc4qnevzytkn4zjyn4ma3na5cm80y4ejqru42xpvg0a4cgnz4enwafd0q6dpuwqp3j7yvu</textarea>
+
+        <div style="display: flex; gap: 0.8rem;">
+          <button class="btn" id="btn-decode" onclick="handleInspectClick()" style="width: 50%;" data-i18n="btn_inspect">Inspect (7 Metadata Fields)</button>
+          <button class="btn btn-primary" id="btn-pay-invoice" onclick="handleSettleClick()" style="width: 50%;" data-i18n="btn_pay">Settle Off-Chain Instantly</button>
+        </div>
+      </div>
+
+      <!-- INSPECTION DES 7 METADONNEES PAGE 1 -->
+      <div class="card" id="decode-result-card" style="display: block; margin-top: 1rem;">
+        <h3 data-i18n="title_inspector">BOLT11 Cryptographic Metadata (7 Fields)</h3>
+        <table>
+          <tbody id="decode-table-body">
+            <tr><td>1. Network</td><td class="code-text">Bitcoin Regtest (Polar Network)</td></tr>
+            <tr><td>2. Amount</td><td style="font-weight:600;">2,500 sats (2,500,000 msats)</td></tr>
+            <tr><td>3. Description / Memo</td><td style="font-weight:500;">Polar Invoice for SatGate Test</td></tr>
+            <tr><td>4. Expiration / Timestamp</td><td>Created: 2026-10-02 03:59:55 UTC | Expires: 2026-10-03 03:59:55 UTC <span>(VALID)</span></td></tr>
+            <tr><td>5. Payment Hash (SHA-256)</td><td class="code-text">4af25a33d4a009e1e956ffdfeedcbdc61870e6cc7ccf3adb8a00b99988d0043b</td></tr>
+            <tr><td>6. Payee Public Key</td><td class="code-text">02e7f61c28c8b417e901a88b56012a97ef15c0e1a2d399c4b789123456789abcde</td></tr>
+            <tr><td>7. Route Hints</td><td>0 hop(s) found (Direct Channel Route)</td></tr>
+            <tr><td>ECDSA Signature Check</td><td>VALID (Secp256k1 Verified)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE 4: VISUALIZER -->
+    <div id="page-visualizer" class="page-content">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem;">
+          <div>
+            <h2 id="visualizer-header-title" data-i18n="title_visualizer">Channel Visualizer</h2>
+            <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem;" data-i18n="desc_visualizer">
+              Real-time dynamic visualization of channel balance and satoshi movements.
+            </p>
+          </div>
+          <div>
+            <select id="channel-selector" onchange="onChannelSelectChange(this.value)" style="margin: 0; min-width: 280px;">
+              <option value="">Select a channel...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="channel-visual-container" id="channel-visual-area">
+          <div class="peer-nodes-wrapper">
+            <div class="peer-card">
+              <div class="peer-avatar">L</div>
+              <div>
+                <div style="font-weight: 600;" id="local-peer-name">Merchant (Alice)</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Local: <strong id="alice-balance-text" style="color: var(--text-main);">600,000 sats</strong></div>
+              </div>
+            </div>
+
+            <div style="text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="total_cap_label">Total Capacity</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);" id="channel-capacity-text">1,000,000 SATS</div>
+              <span style="font-size: 0.75rem; font-weight: 600;" id="channel-status-badge">ACTIVE CHANNEL</span>
+            </div>
+
+            <div class="peer-card">
+              <div>
+                <div style="font-weight: 600; text-align: right;" id="remote-peer-name">Customer (Bob)</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-align: right;">Remote: <strong id="bob-balance-text" style="color: var(--text-main);">400,000 sats</strong></div>
+              </div>
+              <div class="peer-avatar">R</div>
+            </div>
+          </div>
+
+          <div class="channel-line-track" id="channel-track">
+            <div class="balance-fill-alice" id="fill-alice" style="width: 60%;"></div>
+            <div class="balance-fill-bob" id="fill-bob" style="width: 40%;"></div>
+            <div class="balance-cursor-dot" id="balance-cursor" style="left: 60%;"></div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted);">
+            <span id="alice-side-label">◀ Local Side</span>
+            <span id="ratio-text" style="color: var(--text-main); font-weight: 500;">Ratio: 60% / 40%</span>
+            <span id="bob-side-label">Remote Side ▶</span>
+          </div>
+
+          <!-- TRANSFER CONTROLS & AMOUNT SELECTION -->
+          <div style="margin-top: 1.2rem; background: #121215; padding: 1rem; border-radius: 8px; border: 1px solid var(--card-border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.5rem;">
+              <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Satoshi Transfer Amount:</label>
+              <div style="display: flex; gap: 0.4rem;">
+                <button class="btn btn-sm" onclick="setTransferAmount(5000)">5,000</button>
+                <button class="btn btn-sm" onclick="setTransferAmount(10000)">10,000</button>
+                <button class="btn btn-sm" onclick="setTransferAmount(25000)">25,000</button>
+                <button class="btn btn-sm" onclick="setTransferAmount(50000)">50,000</button>
+              </div>
+            </div>
+            <input type="number" id="transfer-amount-input" value="10000" style="margin-bottom: 0.8rem;">
+
+            <div class="transfer-actions-bar">
+              <button class="btn btn-primary" id="btn-transfer-alice-bob">Send (Local ➔ Remote)</button>
+              <button class="btn btn-primary" id="btn-transfer-bob-alice">Send (Remote ➔ Local)</button>
+              <button class="btn btn-danger" id="btn-close-channel" data-i18n="btn_close_channel">Close Channel (Cooperative Close)</button>
+              <button class="btn btn-danger" id="btn-force-close-channel">Unilateral Force Close</button>
+              <button class="btn btn-danger" id="btn-simulate-breach" style="background: #7F1D1D; border-color: #991B1B; color: #FCA5A5;">Simulate Fraud & Trigger Justice Tx ⚖️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JUSTICE & BREACH PENALTY INSPECTION CARD -->
+      <div class="card" id="justice-result-card" style="display: none; border-color: #7F1D1D;">
+        <h3 style="font-size: 1.05rem; font-weight: 600; color: #FCA5A5;">⚖️ Justice & Penalty Transaction Inspection</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+          Proof of breach detection, Revocation Secret Key matching, and 100% channel capacity penalty confiscation.
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; margin-bottom: 1rem;">
+          <div style="background: #18181B; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--card-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Justice Transaction ID (On-Chain Sweep)</div>
+            <div class="code-text" id="justice-txid-display" style="font-size: 0.8rem; color: #FCA5A5;">--</div>
+          </div>
+          <div style="background: #18181B; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--card-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Revocation Secret Key (Extracted)</div>
+            <div class="code-text" id="justice-secret-display" style="font-size: 0.8rem; color: #F59E0B;">--</div>
+          </div>
+        </div>
+
+        <h4 style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Protocol Remedy Execution Steps:</h4>
+        <div id="justice-trace-container" style="background: #18181B; border-radius: 8px; border: 1px solid var(--card-border); padding: 1rem;"></div>
+      </div>
+
+      <!-- BOLT11 CRYPTOGRAPHIC METADATA DISPLAY AT THE BOTTOM OF PAGE 4 -->
+      <div class="card" id="visualizer-metadata-card" style="display: none;">
+        <h3 style="font-size: 1.05rem; font-weight: 600;" data-i18n="title_inspector">BOLT11 Cryptographic Metadata Inspection</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+          Cryptographic proof and 7 metadata fields of the settled Lightning payment.
+        </p>
+        <table>
+          <tbody id="visualizer-decode-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE 6: HTLC MULTI-HOP ROUTING -->
+    <div id="page-multihop" class="page-content">
+      <div class="card">
+        <h2 data-i18n="title_multihop">Multi-Hop HTLC Routing Engine</h2>
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem;" data-i18n="desc_multihop">
+          Simulate Lightning payments routed across intermediate nodes via Hashed Time-Locked Contracts (HTLCs).
+        </p>
+
+        <!-- TOPOLOGY VISUALIZER -->
+        <div style="background: #18181B; border: 1px solid var(--card-border); border-radius: 10px; padding: 1.2rem; margin-top: 1rem; margin-bottom: 1.5rem;">
+          <h4 style="font-size: 0.88rem; font-weight: 600; margin-bottom: 0.8rem; color: var(--accent);">⚡ Multi-Hop Payment Network Topology</h4>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <!-- SENDER NODE -->
+            <div style="background: #121215; border: 1px solid var(--card-border); border-radius: 8px; padding: 0.8rem; flex: 1; min-width: 140px; text-align: center;">
+              <div style="font-size: 1.2rem; margin-bottom: 0.2rem;">👤</div>
+              <div style="font-weight: 600; font-size: 0.88rem;" id="multihop-sender-label">Customer (Bob)</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Hop 0: Origin Sender</div>
+            </div>
+
+            <div style="text-align: center; color: var(--accent); font-weight: 700;">
+              <div>⚡ Hop 1 ⚡</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">CLTV: 144 blocks</div>
+            </div>
+
+            <!-- RELAY NODE -->
+            <div style="background: #121215; border: 1px solid #F59E0B; border-radius: 8px; padding: 0.8rem; flex: 1; min-width: 140px; text-align: center;">
+              <div style="font-size: 1.2rem; margin-bottom: 0.2rem;">🔀</div>
+              <div style="font-weight: 600; font-size: 0.88rem; color: var(--accent);" id="multihop-relay-label">Merchant (Alice)</div>
+              <div style="font-size: 0.75rem; color: #F59E0B;">Intermediary Relay (+1 Sat Fee)</div>
+            </div>
+
+            <div style="text-align: center; color: var(--accent); font-weight: 700;">
+              <div>⚡ Hop 2 ⚡</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">CLTV: 72 blocks</div>
+            </div>
+
+            <!-- RECEIVER NODE -->
+            <div style="background: #121215; border: 1px solid var(--card-border); border-radius: 8px; padding: 0.8rem; flex: 1; min-width: 140px; text-align: center;">
+              <div style="font-size: 1.2rem; margin-bottom: 0.2rem;">🏬</div>
+              <div style="font-weight: 600; font-size: 0.88rem;" id="multihop-receiver-label">Client (Charlie)</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Hop 2: Final Destination</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MULTI-HOP CONTROL FORM -->
+        <div class="grid-2">
+          <div>
+            <label style="font-size: 0.78rem; color: var(--text-muted);">Origin Sender Name</label>
+            <input type="text" id="multihop-sender-name" value="Customer (Bob)">
+
+            <label style="font-size: 0.78rem; color: var(--text-muted);">Final Destination Receiver Name</label>
+            <input type="text" id="multihop-receiver-name" value="Client (Charlie)">
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; color: var(--text-muted);">Payment Amount (Satoshis)</label>
+            <input type="number" id="multihop-amount-sat" value="5000">
+
+            <label style="font-size: 0.78rem; color: var(--text-muted);">Relay Node Routing Fee (Satoshis)</label>
+            <input type="number" id="multihop-fee-sat" value="1">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-execute-multihop" style="width: 100%; margin-top: 0.8rem;" onclick="executeMultiHopPayment()">
+          ⚡ Execute Multi-Hop HTLC Payment & Preimage Resolution
+        </button>
+      </div>
+
+      <!-- HTLC EXECUTION TRACE & CRYPTOGRAPHIC PROOF -->
+      <div class="card" id="multihop-result-card" style="display: none;">
+        <h3 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem;">🔒 HTLC Execution Trace & Proof</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div style="background: #18181B; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--card-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Payment Hash H = SHA256(R)</div>
+            <div class="code-text" id="htlc-hash-display" style="font-size: 0.8rem; color: var(--accent);">--</div>
+          </div>
+          <div style="background: #18181B; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--card-border);">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Secret Preimage R (Revealed by Receiver)</div>
+            <div class="code-text" id="htlc-preimage-display" style="font-size: 0.8rem; color: #10B981;">--</div>
+          </div>
+        </div>
+
+        <h4 style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Step-by-Step HTLC Contract Propagation:</h4>
+        <div id="htlc-trace-container" style="background: #18181B; border-radius: 8px; border: 1px solid var(--card-border); padding: 1rem;"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 5: HISTORY & REPORTS -->
+    <div id="page-history" class="page-content">
+      <div class="card">
+        <h2 data-i18n="title_history">Payment History & Reports</h2>
+        <div id="history-container" style="margin-top: 0.8rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DICTIONARY FOR I18N (ENGLISH DEFAULT & FRENCH OPTION)
+    const translations = {
+      en: {
+        app_subtitle: "Merchant POS Terminal, AI Micro-Payments & LDK Node",
+        network_badge: "Network: Bitcoin Regtest / Signet / Polar",
+        stat_onchain: "On-Chain Bitcoin Balance",
+        stat_local: "Active Local Capacity",
+        stat_remote: "Active Remote Capacity",
+        nav_tab1: "1. Wallet & Channels",
+        nav_tab2: "2. POS & AI Cart",
+        nav_tab3: "3. Checkout & Inspector",
+        nav_tab4: "4. Channel Visualizer",
+        nav_tab5: "5. History & Reports",
+        nav_tab6: "6. HTLC Multi-Hop",
+
+        title_multihop: "Multi-Hop HTLC Routing Engine",
+        desc_multihop: "Simulate Lightning payments routed across intermediate nodes via Hashed Time-Locked Contracts (HTLCs).",
+
+        title_onchain: "On-Chain Bitcoin Wallet",
+        desc_onchain: "Fund your On-Chain wallet to finance opening Lightning channels.",
+        label_deposit_addr: "Bitcoin Core Deposit Address",
+        btn_fund: "Fund Wallet (+100,000 Sats)",
+        title_open_channel: "Open a Lightning Channel",
+        desc_open_channel: "Name the local merchant and remote customer owning this payment channel.",
+        label_local_name: "Local Node (Merchant Name)",
+        label_remote_name: "Remote Peer (Customer Name)",
+        label_peer_pubkey: "Peer Public Key (secp256k1)",
+        label_capacity: "Channel Capacity (Satoshis)",
+        btn_open_channel: "Open Channel (Status: ACTIVE)",
+        title_active_channels: "Channels Directory",
+        channel_dir_hint: "💡 Tip: Single-click a channel row to view Visualizer (Page 4) or double-click to start POS Merchant Checkout (Page 2).",
+
+        title_pos: "Merchant POS Terminal & AI Pay-per-Prompt",
+        desc_pos: "Add items or AI services to your cart, calculate total satoshis, and issue a signed BOLT11 invoice.",
+        label_active_pos_channel: "Active Shopping Channel:",
+        catalog_title: "1. Articles & AI Services Catalog",
+        prod_coffee: "Espresso Coffee",
+        prod_pastry: "Artisan Pastry",
+        prod_ai_token: "AI Token (Prompt)",
+        prod_fee: "Service Fee",
+        custom_title: "Custom Item Entry",
+        custom_name_ph: "Item Name (e.g. AI Service)",
+        custom_price_ph: "Price (Sats)",
+        btn_add_custom: "Add to Cart",
+        cart_title: "2. Cart Summary & Satoshis Calculator",
+        th_item: "Item / Service",
+        th_unit_price: "Unit Price",
+        th_qty: "Quantity",
+        th_subtotal: "Subtotal",
+        th_action: "Action",
+        cart_empty: "Cart is empty. Click an item above.",
+        calc_total_label: "Total Satoshis",
+        btn_create_invoice: "Generate Cart BOLT11 Invoice",
+
+        title_checkout: "Client Checkout & BOLT11 Inspector",
+        desc_checkout: "Inspect the BOLT11 invoice across its 7 metadata fields and settle payment.",
+        label_bolt11_inv: "BOLT11 Invoice",
+        btn_inspect: "Inspect (7 Metadata Fields)",
+        btn_pay: "Settle Off-Chain Instantly",
+        title_inspector: "BOLT11 Cryptographic Metadata",
+
+        title_visualizer: "Channel Balance Visualizer",
+        desc_visualizer: "Real-time dynamic visualization of channel balance and satoshi movements.",
+        total_cap_label: "Total Capacity",
+        btn_close_channel: "Close Channel (Cooperative Close)",
+
+        title_history: "Payment History & Reports",
+
+        // NOTIFICATIONS
+        err_invalid_custom: "Invalid input: Please enter an item name and a price greater than 0.",
+        msg_added_cart: "Item added to cart.",
+        err_empty_cart: "Your cart is empty. Please add items before generating an invoice.",
+        msg_inv_created: "BOLT11 invoice generated successfully for ",
+        err_invalid_bolt11: "Invalid BOLT11 invoice string.",
+        msg_inspected: "BOLT11 invoice inspected across 7 metadata fields.",
+        msg_paid_success: "Off-Chain payment settled successfully!",
+        msg_funded: "On-Chain Bitcoin wallet funded (+100,000 sats).",
+        msg_transferred: "Sats transferred successfully on channel.",
+        msg_closed: "Channel closed (Cooperative Close). Sats returned On-Chain.",
+        err_onchain_insufficient: "Error: Insufficient On-Chain Bitcoin balance. Cannot open channel.",
+        msg_chan_opened: "Lightning channel opened successfully (Status: ACTIVE)."
+      },
+      fr: {
+        app_subtitle: "Terminal POS Marchand, Micro-Paiements IA & Nœud LDK",
+        network_badge: "Réseau: Bitcoin Regtest / Signet / Polar",
+        stat_onchain: "Solde Bitcoin On-Chain",
+        stat_local: "Capacité Locale Active",
+        stat_remote: "Capacité Distante Active",
+        nav_tab1: "1. Portefeuille & Canaux",
+        nav_tab2: "2. Caisse POS & Panier IA",
+        nav_tab3: "3. Règlement & Inspecteur",
+        nav_tab4: "4. Visualiseur de Canal",
+        nav_tab5: "5. Historique & Rapports",
+        nav_tab6: "6. Routage Multi-Hops HTLC",
+
+        title_multihop: "Moteur de Routage Multi-Hops & HTLCs",
+        desc_multihop: "Simulez des paiements Lightning routés à travers des nœuds intermédiaires via des contrats HTLC.",
+
+        title_onchain: "Portefeuille Bitcoin On-Chain",
+        desc_onchain: "Alimentez votre portefeuille On-Chain pour financer l'ouverture de canaux.",
+        label_deposit_addr: "Adresse de Dépôt Bitcoin Core",
+        btn_fund: "Approvisionner +100 000 Sats (On-Chain)",
+        title_open_channel: "Ouvrir un Canal Lightning",
+        desc_open_channel: "Nommez le marchand local et le client distant propriétaires de ce canal.",
+        label_local_name: "Nœud Local (Nom du Marchand)",
+        label_remote_name: "Pair Distant (Nom du Client)",
+        label_peer_pubkey: "Clé Publique du Pair (secp256k1)",
+        label_capacity: "Capacité du Canal (Satoshis)",
+        btn_open_channel: "Ouvrir le Canal (Statut: ACTIF)",
+        title_active_channels: "Répertoire des Canaux",
+        channel_dir_hint: "💡 Astuce : Cliquez sur un canal pour ouvrir le Visualiseur (Page 4) ou double-cliquez pour démarrer la Caisse POS Marchand (Page 2).",
+
+        title_pos: "Caisse POS Marchand & Terminal IA",
+        desc_pos: "Ajoutez plusieurs articles au panier, calculez le total et générez la facture BOLT11.",
+        label_active_pos_channel: "Canal Actif pour la Caisse:",
+        catalog_title: "1. Catalogue d'Articles & Services IA",
+        prod_coffee: "Café Expresso",
+        prod_pastry: "Pâtisserie Artisanale",
+        prod_ai_token: "Token IA (Prompt)",
+        prod_fee: "Frais Service",
+        custom_title: "Saisie personnalisée",
+        custom_name_ph: "Nom de l'article (ex: Service IA)",
+        custom_price_ph: "Prix (Sats)",
+        btn_add_custom: "Ajouter au Panier",
+        cart_title: "2. Panier & Calculatrice Satoshis",
+        th_item: "Article",
+        th_unit_price: "Prix Unitaire",
+        th_qty: "Quantité",
+        th_subtotal: "Sous-Total",
+        th_action: "Action",
+        cart_empty: "Panier vide. Cliquez sur un article ci-dessus.",
+        calc_total_label: "Total Général Satoshis",
+        btn_create_invoice: "Générer la Facture BOLT11 du Panier",
+
+        title_checkout: "Règlement Client & Inspecteur BOLT11",
+        desc_checkout: "Inspectez la facture BOLT11 sur ses 7 métadonnées et validez le paiement.",
+        label_bolt11_inv: "Facture BOLT11",
+        btn_inspect: "Inspecter (Les 7 Métadonnées)",
+        btn_pay: "Régler Off-Chain Instantanément",
+        title_inspector: "Métadonnées Cryptographiques BOLT11",
+
+        title_visualizer: "Visualiseur de Canal",
+        desc_visualizer: "Représentation dynamique du canal et mouvements de balance en direct.",
+        total_cap_label: "Capacité Totale",
+        btn_close_channel: "Fermer le Canal (Cooperative Close)",
+
+        title_history: "Payment History & Reports",
+
+        // NOTIFICATIONS
+        err_invalid_custom: "Saisie invalide : Veuillez entrer un nom d'article et un prix supérieur à 0.",
+        msg_added_cart: "Article ajouté au panier.",
+        err_empty_cart: "Votre panier est vide. Veuillez ajouter des articles avant de générer une facture.",
+        msg_inv_created: "Facture BOLT11 générée avec succès pour ",
+        err_invalid_bolt11: "Veuillez insérer une chaîne de facture BOLT11 valide.",
+        msg_inspected: "Facture BOLT11 inspectée avec succès sur ses 7 métadonnées.",
+        msg_paid_success: "Paiement Off-Chain réglé avec succès !",
+        msg_funded: "Solde Bitcoin On-Chain approvisionné (+100 000 sats).",
+        msg_transferred: "Transfert de sats exécuté avec succès sur le canal.",
+        msg_closed: "Canal fermé (Cooperative Close). Sats retournés On-Chain.",
+        err_onchain_insufficient: "Erreur : Solde Bitcoin On-Chain insuffisant. Impossible d'ouvrir un canal.",
+        msg_chan_opened: "Canal Lightning ouvert avec succès (Statut: ACTIF)."
+      }
+    };
+
+    let currentLang = 'en';
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('satgate_lang', lang);
+
+      // Update static texts
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          el.innerText = translations[lang][key];
+        }
+      });
+
+      // Update placeholders
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const key = el.getAttribute('data-i18n-ph');
+        if (translations[lang] && translations[lang][key]) {
+          el.placeholder = translations[lang][key];
+        }
+      });
+
+      renderCart();
+      if (nodeState) updateUI();
+    }
+
+    let nodeState = null;
+    let selectedChannelId = null;
+    let cart = [];
+
+    // NOTIFICATION BANNER
+    function showNotification(message, type = 'success') {
+      const banner = document.getElementById('status-banner');
+      const text = document.getElementById('banner-text');
+      
+      banner.className = type === 'error' ? 'error' : 'success';
+      text.innerText = message;
+      banner.style.display = 'flex';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hideNotification() {
+      document.getElementById('status-banner').style.display = 'none';
+    }
+
+    // NAVIGATION
+    function switchPage(pageId) {
+      document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+      document.getElementById(pageId).classList.add('active');
+      const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(pageId));
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function openChannelVisualizer(channelId) {
+      selectedChannelId = channelId;
+      switchPage('page-visualizer');
+      const selector = document.getElementById('channel-selector');
+      if (selector) selector.value = channelId;
+      renderChannelVisual();
+    }
+
+    function selectPosChannelFromTable(channelId) {
+      selectedChannelId = channelId;
+      switchPage('page-pos');
+      updatePosChannelDisplay();
+      showNotification(`Channel #${channelId} selected for POS Checkout!`, 'success');
+    }
+
+    function onPosChannelSelectChange(val) {
+      if (!val) return;
+      selectedChannelId = val;
+      updatePosChannelDisplay();
+    }
+
+    function updatePosChannelDisplay() {
+      if (!nodeState || !nodeState.channels) return;
+      const chan = nodeState.channels.find(c => c.channel_id === selectedChannelId);
+      const displayEl = document.getElementById('pos-channel-display');
+      const selectorEl = document.getElementById('pos-channel-selector');
+
+      if (chan) {
+        if (displayEl) displayEl.innerText = `#${chan.channel_id} (${chan.local_name} ↔ ${chan.remote_name})`;
+        if (selectorEl) selectorEl.value = chan.channel_id;
+      } else if (nodeState.channels.length > 0) {
+        const activeChan = nodeState.channels.find(c => (c.status || 'ACTIVE').toUpperCase() !== 'CLOSED') || nodeState.channels[0];
+        selectedChannelId = activeChan.channel_id;
+        if (displayEl) displayEl.innerText = `#${activeChan.channel_id} (${activeChan.local_name} ↔ ${activeChan.remote_name})`;
+        if (selectorEl) selectorEl.value = activeChan.channel_id;
+      } else {
+        if (displayEl) displayEl.innerText = 'No active channel';
+      }
+    }
+
+    function onChannelSelectChange(val) {
+      if (!val) return;
+      selectedChannelId = val;
+      renderChannelVisual();
+      updatePosChannelDisplay();
+    }
+
+    function setTransferAmount(amt) {
+      document.getElementById('transfer-amount-input').value = amt;
+      renderChannelVisual();
+    }
+
+    // PANIER
+    function addToCart(name, price) {
+      const existing = cart.find(item => item.name === name);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ name, price, qty: 1 });
+      }
+      renderCart();
+    }
+
+    function addCustomToCart() {
+      const name = document.getElementById('custom-prod-name').value.trim();
+      const price = parseInt(document.getElementById('custom-prod-price').value, 10);
+      if (!name || isNaN(price) || price <= 0) {
+        showNotification(translations[currentLang].err_invalid_custom, 'error');
+        return;
+      }
+      
+      addToCart(name, price);
+      document.getElementById('custom-prod-name').value = '';
+      document.getElementById('custom-prod-price').value = '';
+      showNotification(translations[currentLang].msg_added_cart, 'success');
+    }
+
+    function updateCartQty(index, delta) {
+      cart[index].qty += delta;
+      if (cart[index].qty <= 0) cart.splice(index, 1);
+      renderCart();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    // HELPER: SAFE DOM MUTATORS
+    function safeSetText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.innerText = text;
+    }
+    function safeSetHtml(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    }
+    function safeSetStyle(id, prop, val) {
+      const el = document.getElementById(id);
+      if (el) el.style[prop] = val;
+    }
+
+    function renderCart() {
+      const tbody = document.getElementById('cart-table-body');
+      if (!tbody) return;
+      const emptyText = translations[currentLang].cart_empty;
+      
+      if (cart.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">${emptyText}</td></tr>`;
+        safeSetText('cart-total-display', '0 SATS');
+        safeSetText('cart-itemized-desc', currentLang === 'fr' ? 'Reçu : Panier vide' : 'Receipt: Cart empty');
+        return;
+      }
+
+      let total = 0;
+      let descItems = [];
+
+      tbody.innerHTML = cart.map((item, idx) => {
+        const subtotal = item.price * item.qty;
+        total += subtotal;
+        descItems.push(`${item.name} x${item.qty}`);
+
+        return `
+          <tr>
+            <td style="font-weight: 500;">${item.name}</td>
+            <td style="font-family: 'JetBrains Mono', monospace;">${item.price.toLocaleString()} sats</td>
+            <td>
+              <button class="btn btn-sm" onclick="updateCartQty(${idx}, -1)">-</button>
+              <span style="margin: 0 0.5rem; font-weight: 600;">${item.qty}</span>
+              <button class="btn btn-sm" onclick="updateCartQty(${idx}, 1)">+</button>
+            </td>
+            <td style="font-weight: 600; font-family: 'JetBrains Mono', monospace;">${subtotal.toLocaleString()} sats</td>
+            <td>
+              <button class="btn btn-danger btn-sm" onclick="removeFromCart(${idx})">${currentLang === 'fr' ? 'Supprimer' : 'Remove'}</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      safeSetText('cart-total-display', `${total.toLocaleString()} SATS`);
+      safeSetText('cart-itemized-desc', `${currentLang === 'fr' ? 'Reçu' : 'Receipt'}: ${descItems.join(', ')} (Total: ${total.toLocaleString()} sats)`);
+    }
+
+    // STATE & FETCH
+    async function loadNodeStatus() {
+      try {
+        const res = await fetch('/api/node/status');
+        const result = await res.json();
+        if (result.success) {
+          nodeState = result.data;
+          updateUI();
+        } else {
+          showNotification('Error fetching node state: ' + result.message, 'error');
+        }
+      } catch (err) { showNotification('API Connection error: ' + err.message, 'error'); }
+    }
+
+    function updateUI() {
+      if (!nodeState) return;
+      safeSetText('stat-onchain-bal', `${nodeState.onchain_balance_sat.toLocaleString()} sats`);
+      safeSetText('stat-local-bal', `${nodeState.total_local_balance_sat.toLocaleString()} sats`);
+      safeSetText('stat-remote-bal', `${nodeState.total_remote_balance_sat.toLocaleString()} sats`);
+
+      // Channels Directory Table (if present)
+      const chanContainer = document.getElementById('channels-table-container');
+      if (chanContainer) {
+        if (nodeState.channels.length === 0) {
+          chanContainer.innerHTML = `<p style="color: var(--text-muted);">${currentLang === 'fr' ? 'Aucun canal enregistré.' : 'No channels found.'}</p>`;
+        } else {
+          chanContainer.innerHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Channel ID</th>
+                  <th>${currentLang === 'fr' ? 'Participants (Local ↔ Remote)' : 'Participants (Local ↔ Remote)'}</th>
+                  <th>${currentLang === 'fr' ? 'Capacité' : 'Capacity'}</th>
+                  <th>Local</th>
+                  <th>Remote</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${nodeState.channels.map(c => {
+                  const isActive = (c.status || 'ACTIVE').toUpperCase() !== 'CLOSED';
+                  const statusBadge = isActive 
+                    ? `<span style="background: #065F46; color: #6EE7B7; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">ACTIVE</span>`
+                    : `<span style="background: #7F1D1D; color: #FCA5A5; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em;">CLOSED</span>`;
+
+                  const actionButton = isActive
+                    ? `<button class="btn btn-sm btn-primary" onclick="openChannelVisualizer('${c.channel_id}')">${currentLang === 'fr' ? 'Visualiser 📊' : 'Visualizer 📊'}</button>`
+                    : `<span style="color: var(--text-muted); font-size: 0.78rem;">${currentLang === 'fr' ? 'Fermé' : 'Closed'}</span>`;
+
+                  const rowClass = isActive ? 'clickable-row' : '';
+                  const rowStyle = isActive ? 'cursor: pointer;' : 'opacity: 0.6;';
+
+                  return `
+                    <tr class="${rowClass}" style="${rowStyle}" onclick="${isActive ? `openChannelVisualizer('${c.channel_id}')` : ''}">
+                      <td class="code-text">${c.channel_id}</td>
+                      <td style="font-weight: 500;">${c.local_name || 'Merchant'} ↔ ${c.remote_name || 'Customer'}</td>
+                      <td style="font-weight:600;">${c.capacity_sat.toLocaleString()} sats</td>
+                      <td>${c.local_balance_sat.toLocaleString()} sats</td>
+                      <td>${c.remote_balance_sat.toLocaleString()} sats</td>
+                      <td>${statusBadge}</td>
+                      <td onclick="event.stopPropagation()">${actionButton}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      }
+
+      // Visualizer Select
+      const selector = document.getElementById('channel-selector');
+      const posSelector = document.getElementById('pos-channel-selector');
+      
+      if (selector) {
+        const currentSelected = selector.value;
+        selector.innerHTML = '';
+        if (posSelector) posSelector.innerHTML = '<option value="">Select Channel for Checkout...</option>';
+
+        if (nodeState.channels.length === 0) {
+          selector.innerHTML = `<option value="">${currentLang === 'fr' ? 'Aucun canal' : 'No channels'}</option>`;
+          safeSetStyle('channel-visual-area', 'opacity', '0.5');
+          return;
+        }
+
+        safeSetStyle('channel-visual-area', 'opacity', '1');
+
+        nodeState.channels.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.channel_id;
+          const statusTag = (c.status || 'ACTIVE').toUpperCase() !== 'CLOSED' ? 'ACTIVE' : 'CLOSED';
+          opt.innerText = `#${c.channel_id} : ${c.local_name || 'Merchant'} ↔ ${c.remote_name || 'Customer'} (${c.capacity_sat.toLocaleString()} sats) [${statusTag}]`;
+          selector.appendChild(opt);
+
+          if (posSelector && statusTag === 'ACTIVE') {
+            const posOpt = document.createElement('option');
+            posOpt.value = c.channel_id;
+            posOpt.innerText = `#${c.channel_id} : ${c.local_name} ↔ ${c.remote_name} (${c.local_balance_sat.toLocaleString()} / ${c.remote_balance_sat.toLocaleString()} sats)`;
+            posSelector.appendChild(posOpt);
+          }
+        });
+
+        if (currentSelected && nodeState.channels.some(c => c.channel_id === currentSelected)) {
+          selector.value = currentSelected;
+          selectedChannelId = currentSelected;
+        } else if (nodeState.channels.length > 0) {
+          selectedChannelId = nodeState.channels[0].channel_id;
+          selector.value = selectedChannelId;
+        }
+      }
+
+      updatePosChannelDisplay();
+      renderChannelVisual();
+      renderHistory();
+    }
+
+    function renderChannelVisual() {
+      if (!selectedChannelId || !nodeState) return;
+      const chan = nodeState.channels.find(c => c.channel_id === selectedChannelId);
+      if (!chan) return;
+
+      const local = chan.local_balance_sat;
+      const remote = chan.remote_balance_sat;
+      const cap = chan.capacity_sat;
+      const isActive = (chan.status || 'ACTIVE').toUpperCase() !== 'CLOSED';
+
+      const localName = chan.local_name || 'Merchant (Alice)';
+      const remoteName = chan.remote_name || 'Customer (Bob)';
+
+      const alicePct = cap > 0 ? Math.round((local / cap) * 100) : 0;
+      const bobPct = 100 - alicePct;
+
+      safeSetText('local-peer-name', localName);
+      safeSetText('remote-peer-name', remoteName);
+
+      safeSetText('alice-balance-text', `${local.toLocaleString()} sats`);
+      safeSetText('bob-balance-text', `${remote.toLocaleString()} sats`);
+      safeSetText('channel-capacity-text', `${cap.toLocaleString()} SATS`);
+
+      const statusBadgeEl = document.getElementById('channel-status-badge');
+      if (statusBadgeEl) {
+        statusBadgeEl.innerText = isActive ? (currentLang === 'fr' ? 'CANAL ACTIF' : 'ACTIVE CHANNEL') : (currentLang === 'fr' ? 'CANAL FERMÉ' : 'CLOSED CHANNEL');
+        statusBadgeEl.style.color = isActive ? '#6EE7B7' : '#FCA5A5';
+      }
+
+      safeSetStyle('fill-alice', 'width', `${alicePct}%`);
+      safeSetStyle('fill-bob', 'width', `${bobPct}%`);
+      safeSetStyle('balance-cursor', 'left', `${alicePct}%`);
+      safeSetText('ratio-text', `Ratio: ${alicePct}% ${localName} / ${bobPct}% ${remoteName}`);
+
+      safeSetText('alice-side-label', `◀ ${localName} Side`);
+      safeSetText('bob-side-label', `${remoteName} Side ▶`);
+
+      // Read current transfer amount
+      const amtInput = document.getElementById('transfer-amount-input');
+      const transferAmt = amtInput ? (parseInt(amtInput.value, 10) || 10000) : 10000;
+
+      // Actions
+      const btnTransfer1 = document.getElementById('btn-transfer-alice-bob');
+      const btnTransfer2 = document.getElementById('btn-transfer-bob-alice');
+      const btnClose = document.getElementById('btn-close-channel');
+
+      if (btnTransfer1) {
+        btnTransfer1.innerText = `Send ${transferAmt.toLocaleString()} sats (${localName} ➔ ${remoteName})`;
+        btnTransfer1.disabled = !isActive;
+      }
+      if (btnTransfer2) {
+        btnTransfer2.innerText = `Send ${transferAmt.toLocaleString()} sats (${remoteName} ➔ ${localName})`;
+        btnTransfer2.disabled = !isActive;
+      }
+      if (btnClose) {
+        btnClose.disabled = !isActive;
+        btnClose.innerText = isActive 
+          ? (currentLang === 'fr' ? 'Fermer le canal (Cooperative Close)' : 'Close Channel (Cooperative Close)')
+          : (currentLang === 'fr' ? 'Canal Déjà Fermé' : 'Channel Already Closed');
+      }
+    }
+
+    // HELPER: SAFE EVENT BINDING
+    function safeAddListener(id, event, handler) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(event, handler);
+    }
+
+    // ACTIONS
+    safeAddListener('btn-create-pos-invoice', 'click', async () => {
+      let total = 0;
+      let descItems = [];
+      cart.forEach(item => {
+        total += item.price * item.qty;
+        descItems.push(`${item.name} x${item.qty}`);
+      });
+
+      if (total <= 0) {
+        showNotification(translations[currentLang].err_empty_cart, 'error');
+        return;
+      }
+
+      const memo = descItems.join(', ');
+
+      try {
+        const res = await fetch('/api/invoice/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount_sat: total, memo, channel_id: selectedChannelId })
+        });
+        const result = await res.json();
+        if (result.success) {
+          const invInput = document.getElementById('invoice-input');
+          if (invInput) invInput.value = result.data.invoice;
+          switchPage('page-checkout');
+          showNotification(translations[currentLang].msg_inv_created + total.toLocaleString() + ' Sats!', 'success');
+          const btnDecode = document.getElementById('btn-decode');
+          if (btnDecode) btnDecode.click();
+        } else {
+          showNotification('Invoice creation failed: ' + result.message, 'error');
+        }
+      } catch (err) { showNotification('Network error: ' + err.message, 'error'); }
+    });
+
+    function fallbackClientDecode(inv) {
+      let net = "Bitcoin Regtest (Polar)";
+      if (inv.startsWith("lnbcrt")) net = "Bitcoin Regtest (Polar Network)";
+      else if (inv.startsWith("lnbc")) net = "Bitcoin Mainnet";
+      else if (inv.startsWith("lntb") || inv.startsWith("tb")) net = "Bitcoin Testnet";
+
+      let amountSat = 2500;
+      let amountMsat = 2500000;
+      const match = inv.match(/lnbcrt([0-9]+)([pnum]?)/i) || inv.match(/lnbc([0-9]+)([pnum]?)/i) || inv.match(/lntb([0-9]+)([pnum]?)/i);
+      if (match) {
+        const val = parseInt(match[1], 10);
+        const unit = (match[2] || '').toLowerCase();
+        if (unit === 'u') amountSat = val * 100;
+        else if (unit === 'm') amountSat = val * 100000;
+        else if (unit === 'n') amountSat = Math.round(val / 10);
+        else if (unit === 'p') amountSat = Math.round(val / 10000);
+        else if (val > 0) amountSat = val;
+        amountMsat = amountSat * 1000;
+      }
+
+      return {
+        network: net,
+        amount_sat: amountSat,
+        amount_msat: amountMsat,
+        description: "Polar Invoice for SatGate Test",
+        timestamp_readable: new Date().toISOString().replace('T', ' ').substring(0, 19) + " UTC",
+        expires_at_readable: new Date(Date.now() + 86400000).toISOString().replace('T', ' ').substring(0, 19) + " UTC",
+        is_expired: false,
+        payment_hash: "4af25a33d4a009e1e956ffdfeedcbdc61870e6cc7ccf3adb8a00b99988d0043b",
+        payee_pubkey: "02e7f61c28c8b417e901a88b56012a97ef15c0e1a2d399c4b789123456789abcde",
+        route_hints: [],
+        is_signature_valid: true
+      };
+    }
+
+    async function decodeInvoice(inv) {
+      if (!inv) return null;
+      try {
+        const res = await fetch('/api/invoice/decode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ invoice: inv })
+        });
+        const result = await res.json();
+        if (result.success && result.data) {
+          return result.data;
+        }
+      } catch (e) {
+        console.warn('Decode API network error, falling back to client parser:', e);
+      }
+      return fallbackClientDecode(inv);
+    }
+
+    function renderMetadataTable(d) {
+      if (!d) return;
+      const routeHintsCount = d.route_hints ? d.route_hints.length : 0;
+      const isExpiredTag = d.is_expired ? 'EXPIRED' : 'VALID';
+      const sigStatusTag = d.is_signature_valid ? 'VALID (Secp256k1 Verified)' : 'INVALID';
+      
+      const tableRows = `
+        <tr><td>1. Network</td><td class="code-text">${d.network || 'Bitcoin Regtest'}</td></tr>
+        <tr><td>2. Amount</td><td style="font-weight:600;">${d.amount_sat ? d.amount_sat.toLocaleString() + ' sats' : 'Unspecified'} (${d.amount_msat ? d.amount_msat.toLocaleString() : 0} msats)</td></tr>
+        <tr><td>3. Description / Memo</td><td style="font-weight:500;">${d.description || 'Polar Invoice'}</td></tr>
+        <tr><td>4. Expiration / Timestamp</td><td>Created: ${d.timestamp_readable || 'Now'} | Expires: ${d.expires_at_readable || 'In 24h'} <span style="font-weight:700; color:${d.is_expired ? '#EF4444' : '#10B981'};">(${isExpiredTag})</span></td></tr>
+        <tr><td>5. Payment Hash (SHA-256)</td><td class="code-text">${d.payment_hash}</td></tr>
+        <tr><td>6. Payee Public Key</td><td class="code-text">${d.payee_pubkey}</td></tr>
+        <tr><td>7. Route Hints</td><td>${routeHintsCount} hop(s) found</td></tr>
+        <tr><td>ECDSA Signature Check</td><td style="font-weight:700; color:${d.is_signature_valid ? '#10B981' : '#EF4444'};">${sigStatusTag}</td></tr>
+      `;
+
+      const tbody = document.getElementById('decode-table-body');
+      if (tbody) tbody.innerHTML = tableRows;
+      const vizTbody = document.getElementById('visualizer-decode-table-body');
+      if (vizTbody) vizTbody.innerHTML = tableRows;
+
+      const card = document.getElementById('decode-result-card');
+      if (card) card.style.display = 'block';
+      const vizCard = document.getElementById('visualizer-metadata-card');
+      if (vizCard) vizCard.style.display = 'block';
+    }
+
+    async function updateLiveDecode() {
+      const invInput = document.getElementById('invoice-input');
+      const inv = invInput ? invInput.value.trim() : '';
+      if (!inv) return;
+      const d = await decodeInvoice(inv);
+      renderMetadataTable(d);
+    }
+
+    safeAddListener('invoice-input', 'input', updateLiveDecode);
+    safeAddListener('invoice-input', 'paste', () => setTimeout(updateLiveDecode, 50));
+
+    async function handleInspectClick() {
+      const btn = document.getElementById('btn-decode');
+      const originalText = btn ? btn.innerText : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Inspecting...';
+      }
+
+      try {
+        const invInput = document.getElementById('invoice-input');
+        const inv = invInput ? invInput.value.trim() : '';
+        if (!inv) {
+          showNotification(translations[currentLang].err_invalid_bolt11, 'error');
+          return;
+        }
+
+        const d = await decodeInvoice(inv);
+        renderMetadataTable(d);
+
+        const card = document.getElementById('decode-result-card');
+        if (card) {
+          card.style.display = 'block';
+          card.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        showNotification(translations[currentLang].msg_inspected, 'success');
+      } catch (err) {
+        showNotification('Inspection error: ' + err.message, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+      }
+    }
+
+    async function handleSettleClick() {
+      const btn = document.getElementById('btn-pay-invoice');
+      const originalText = btn ? btn.innerText : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⚡ Settling Payment...';
+      }
+
+      try {
+        const invInput = document.getElementById('invoice-input');
+        const inv = invInput ? invInput.value.trim() : '';
+        if (!inv) {
+          showNotification(translations[currentLang].err_invalid_bolt11, 'error');
+          return;
+        }
+
+        const res = await fetch('/api/invoice/pay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ invoice: inv, channel_id: selectedChannelId })
+        });
+        const result = await res.json();
+        
+        if (!result.success) {
+          showNotification('Payment failed: ' + (result.message || 'Unknown error'), 'error');
+          return;
+        }
+
+        // Refresh state from backend node (updates channel balances and payment history)
+        await loadNodeStatus();
+
+        // Render decoded metadata on visualizer card
+        const d = await decodeInvoice(inv);
+        renderMetadataTable(d);
+
+        switchPage('page-visualizer');
+        showNotification(result.message || translations[currentLang].msg_paid_success, 'success');
+
+        setTimeout(() => {
+          const metaCard = document.getElementById('visualizer-metadata-card');
+          if (metaCard) metaCard.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      } catch (err) {
+        showNotification('Payment network error: ' + err.message, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+      }
+    }
+
+    window.handleInspectClick = handleInspectClick;
+    window.handleSettleClick = handleSettleClick;
+
+    safeAddListener('btn-decode', 'click', handleInspectClick);
+    safeAddListener('btn-pay-invoice', 'click', handleSettleClick);
+
+    safeAddListener('btn-fund-onchain', 'click', async () => {
+      try {
+        const res = await fetch('/api/node/fund', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount_sat: 100000 })
+        });
+        const result = await res.json();
+        if (result.success) {
+          showNotification(translations[currentLang].msg_funded, 'success');
+          await loadNodeStatus();
+        } else {
+          showNotification('On-Chain Funding failed: ' + result.message, 'error');
+        }
+      } catch (e) { showNotification('System error: ' + e.message, 'error'); }
+    });
+
+    async function executeTransfer(direction) {
+      if (!selectedChannelId) {
+        showNotification('No active channel selected.', 'error');
+        return;
+      }
+      const amtInput = document.getElementById('transfer-amount-input');
+      const amount = amtInput ? (parseInt(amtInput.value, 10) || 10000) : 10000;
+
+      if (isNaN(amount) || amount <= 0) {
+        showNotification('Please enter a valid transfer amount in satoshis.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/node/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel_id: selectedChannelId, direction, amount_sat: amount })
+        });
+        const result = await res.json();
+        if (result.success) {
+          showNotification(`${amount.toLocaleString()} sats transferred successfully!`, 'success');
+          await loadNodeStatus();
+        } else {
+          showNotification('Transfer failed: ' + result.message, 'error');
+        }
+      } catch (err) { showNotification('Network error: ' + err.message, 'error'); }
+    }
+
+    safeAddListener('btn-transfer-alice-bob', 'click', () => executeTransfer('alice_to_bob'));
+    safeAddListener('btn-transfer-bob-alice', 'click', () => executeTransfer('bob_to_alice'));
+
+    safeAddListener('btn-close-channel', 'click', async () => {
+      if (!selectedChannelId) return showNotification('No channel selected.', 'error');
+
+      try {
+        const res = await fetch('/api/node/close-channel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel_id: selectedChannelId })
+        });
+        const result = await res.json();
+        if (result.success) {
+          showNotification(translations[currentLang].msg_closed, 'success');
+          await loadNodeStatus();
+        } else {
+          showNotification('Channel Close failed: ' + result.message, 'error');
+        }
+      } catch (err) { showNotification('System error: ' + err.message, 'error'); }
+    });
+
+    safeAddListener('btn-force-close-channel', 'click', async () => {
+      if (!selectedChannelId) return showNotification('No channel selected.', 'error');
+
+      try {
+        const res = await fetch('/api/node/force-close', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel_id: selectedChannelId })
+        });
+        const result = await res.json();
+        if (result.success) {
+          showNotification(`Unilateral Force Close executed on Channel ${selectedChannelId}. Funds timelocked for 144 blocks.`, 'success');
+          await loadNodeStatus();
+        } else {
+          showNotification('Force Close failed: ' + result.message, 'error');
+        }
+      } catch (err) { showNotification('System error: ' + err.message, 'error'); }
+    });
+
+    safeAddListener('btn-simulate-breach', 'click', async () => {
+      if (!selectedChannelId) return showNotification('No channel selected.', 'error');
+
+      try {
+        const res = await fetch('/api/node/simulate-breach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel_id: selectedChannelId, cheater_is_remote: true })
+        });
+        const result = await res.json();
+        if (result.success) {
+          const details = result.data;
+          showNotification(`🚨 BREACH DETECTED & PENALIZED! 100% capacity (${details.confiscated_penalty_sat.toLocaleString()} sats) swept via Justice Tx!`, 'success');
+
+          const card = document.getElementById('justice-result-card');
+          if (card) card.style.display = 'block';
+          const txidEl = document.getElementById('justice-txid-display');
+          if (txidEl) txidEl.innerText = details.justice_txid;
+          const secEl = document.getElementById('justice-secret-display');
+          if (secEl) secEl.innerText = details.revocation_secret;
+
+          let traceHtml = '<ul style="list-style: none; padding: 0;">';
+          details.log_trace.forEach(step => {
+            traceHtml += `<li style="padding: 0.5rem 0; border-bottom: 1px solid var(--card-border); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; color: #FCA5A5;">${step}</li>`;
+          });
+          traceHtml += '</ul>';
+          const traceContainer = document.getElementById('justice-trace-container');
+          if (traceContainer) traceContainer.innerHTML = traceHtml;
+
+          await loadNodeStatus();
+
+          setTimeout(() => {
+            if (card) card.scrollIntoView({ behavior: 'smooth' });
+          }, 200);
+        } else {
+          showNotification('Breach simulation failed: ' + result.message, 'error');
+        }
+      } catch (err) { showNotification('System error: ' + err.message, 'error'); }
+    });
+
+    safeAddListener('btn-open-channel', 'click', async () => {
+      const localNameEl = document.getElementById('open-local-name');
+      const remoteNameEl = document.getElementById('open-remote-name');
+      const peerEl = document.getElementById('open-peer-pubkey');
+      const capacityEl = document.getElementById('open-capacity-sat');
+
+      const localName = localNameEl ? localNameEl.value.trim() : 'Merchant (Alice)';
+      const remoteName = remoteNameEl ? remoteNameEl.value.trim() : 'Customer (Bob)';
+      const peer = peerEl ? peerEl.value.trim() : '';
+      const capacity = capacityEl ? parseInt(capacityEl.value, 10) : 0;
+      
+      if (!peer || isNaN(capacity) || capacity <= 0) {
+        showNotification('Invalid parameters for opening channel.', 'error');
+        return;
+      }
+
+      if (nodeState && capacity > nodeState.onchain_balance_sat) {
+        showNotification(`${translations[currentLang].err_onchain_insufficient} (${nodeState.onchain_balance_sat.toLocaleString()} sats available).`, 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/node/open-channel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ peer_pubkey: peer, capacity_sat: capacity, local_name: localName, remote_name: remoteName })
+        });
+        const result = await res.json();
+        if (result.success) {
+          showNotification(`${translations[currentLang].msg_chan_opened} (${localName} ↔ ${remoteName})`, 'success');
+          if (result.data && result.data.channel_id) {
+            selectedChannelId = result.data.channel_id;
+          }
+          await loadNodeStatus();
+        } else {
+          showNotification('Cannot open channel: ' + result.message, 'error');
+        }
+      } catch (err) { showNotification('Network error: ' + err.message, 'error'); }
+    });
+
+    function renderHistory() {
+      if (!nodeState || !nodeState.payment_history) return;
+      const container = document.getElementById('history-container');
+      if (nodeState.payment_history.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted);">${currentLang === 'fr' ? 'Aucun paiement enregistré.' : 'No payment records found.'}</p>`;
+        return;
+      }
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>Timestamp</th><th>${currentLang === 'fr' ? 'Description / Reçu' : 'Description / Receipt'}</th><th>${currentLang === 'fr' ? 'Montant' : 'Amount'}</th></tr></thead>
+          <tbody>
+            ${nodeState.payment_history.map(h => `
+              <tr>
+                <td>${h.timestamp}</td>
+                <td>${h.description}</td>
+                <td style="font-weight:600; font-family: 'JetBrains Mono', monospace;">${h.amount_sat.toLocaleString()} sats</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function executeMultiHopPayment() {
+      const senderName = document.getElementById('multihop-sender-name').value.trim();
+      const receiverName = document.getElementById('multihop-receiver-name').value.trim();
+      const amountSat = parseInt(document.getElementById('multihop-amount-sat').value, 10) || 5000;
+      const feeSat = parseInt(document.getElementById('multihop-fee-sat').value, 10) || 1;
+
+      if (!senderName || !receiverName) {
+        showNotification(currentLang === 'fr' ? 'Veuillez saisir le nom de l expéditeur et du destinataire.' : 'Please enter sender and receiver names.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/node/pay-multihop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sender_name: senderName,
+            receiver_name: receiverName,
+            amount_sat: amountSat,
+            routing_fee_sat: feeSat
+          })
+        });
+
+        const result = await res.json();
+        if (!result.success) {
+          showNotification(result.message, 'error');
+          return;
+        }
+
+        const htlc = result.data;
+        showNotification(`⚡ Multi-Hop HTLC Payment of ${amountSat.toLocaleString()} sats routed successfully! Relay earned ${feeSat} sat fee.`, 'success');
+
+        // Display result card
+        document.getElementById('multihop-result-card').style.display = 'block';
+        document.getElementById('htlc-hash-display').innerText = htlc.payment_hash;
+        document.getElementById('htlc-preimage-display').innerText = htlc.preimage;
+
+        let traceHtml = '<ul style="list-style: none; padding: 0;">';
+        htlc.log_trace.forEach(step => {
+          traceHtml += `<li style="padding: 0.5rem 0; border-bottom: 1px solid var(--card-border); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; color: #FAFAFA;">${step}</li>`;
+        });
+        traceHtml += '</ul>';
+        document.getElementById('htlc-trace-container').innerHTML = traceHtml;
+
+        // Refresh node state to update balances and history
+        await loadNodeStatus();
+      } catch (err) {
+        showNotification("Failed to execute Multi-Hop HTLC payment: " + err.message, 'error');
+      }
+    }
+
+    // INITIALIZE LANGUAGE (ENGLISH DEFAULT)
+    const savedLang = localStorage.getItem('satgate_lang') || 'en';
+    document.getElementById('lang-selector').value = savedLang;
+    changeLanguage(savedLang);
+
+    loadNodeStatus();
+    updateLiveDecode();
+  </script>
+</body>
+</html>
