@@ -1,6 +1,6 @@
 # ⚡ Lightning SatGate
 
-**Lightning SatGate** est une application Rust haute performance et un terminal de paiement pour le réseau Bitcoin Lightning Network (Marchands POS, Clients, Micro-Paiements & Agents IA) avec décodeur BOLT11 complet et simulateur de nœud LDK/Polar.
+**Lightning SatGate** is a high-performance standalone Rust application and Lightning Network payment terminal (Merchants POS, Customers, Micro-Payments & AI Agents) with a detailed 7-field BOLT11 decoder and an LDK/Polar node simulator.
 
 ---
 
@@ -27,63 +27,63 @@ graph TD
 
 ---
 
-## 📦 Audit des Crates Recommandées (100% Respecté)
+## 📦 Audit of Recommended Crates (100% Compliant)
 
-| Categorie | Crate Rust | Utilisation dans le Projet | Statut |
+| Category | Rust Crate | Usage in Project | Status |
 | :--- | :--- | :--- | :---: |
-| **Error Handling** | `thiserror` | Erreurs typées personnalisées dans la bibliothèque core | ✅ FAIT |
-| | `anyhow` | Gestion flexible des erreurs avec du contexte dans l'application CLI et le serveur | ✅ FAIT |
-| **Serialization** | `serde` & `serde_json` | Sérialisation et désérialisation JSON des API REST et métadonnées BOLT11 | ✅ FAIT |
-| **Config** | `toml` | Lecture des fichiers de configuration Rust | ✅ FAIT |
-| | `dotenvy` | Chargement des clés et paramètres RPC depuis le fichier `.env` | ✅ FAIT |
-| **Networking** | `tokio` | Runtime asynchrone pour le serveur web TCP/HTTP Axum et tâches d'arrière-plan | ✅ FAIT |
-| | `reqwest` | Client HTTP pour les requêtes vers les nœuds et API externes | ✅ FAIT |
-| **Observability**| `tracing` & `tracing-subscriber` | Logging structuré pour le suivi du serveur et le débogage | ✅ FAIT |
-| **Security** | `zeroize` | Effacement sécurisé des pré-images et secrets en mémoire lors du Drop | ✅ FAIT |
-| **CLI Formatting**| `comfy-table` | Affichage de tableaux formatés élégants dans le terminal | ✅ FAIT |
-| | `colored` | Coloration syntaxique des sorties du terminal | ✅ FAIT |
-| | `indicatif` | Barres de progression lors des opérations de décodage/signature | ✅ FAIT |
-| **Development** | `Polar` | Testé et compatible avec les factures Polar `lnbcrt...` | ✅ FAIT |
+| **Error Handling** | `thiserror` | Custom typed error enums in core modules | ✅ DONE |
+| | `anyhow` | Flexible error handling with context in CLI and server | ✅ DONE |
+| **Serialization** | `serde` & `serde_json` | JSON serialization/deserialization for REST APIs & BOLT11 metadata | ✅ DONE |
+| **Configuration** | `toml` | Reading Rust project config files | ✅ DONE |
+| | `dotenvy` | Loading environment variables and settings from `.env` file | ✅ DONE |
+| **Networking** | `tokio` | Async runtime for Axum TCP/HTTP web server & background sync tasks | ✅ DONE |
+| | `reqwest` | HTTP client for calling external APIs and node endpoints | ✅ DONE |
+| **Observability**| `tracing` & `tracing-subscriber` | Structured logging for service monitoring and debugging | ✅ DONE |
+| **Security** | `zeroize` | Wiping secrets and preimages from memory on Drop | ✅ DONE |
+| **CLI Formatting**| `comfy-table` | Readable formatted tables in terminal CLI | ✅ DONE |
+| | `colored` | Colored terminal output formatting | ✅ DONE |
+| | `indicatif` | Terminal progress bars during decode and signing operations | ✅ DONE |
+| **Development** | `Polar` | Tested and compatible with Polar `lnbcrt...` invoices | ✅ DONE |
 
 ---
 
-## 🚀 Fonctionnalités Détaillées
+## 🚀 Key Features
 
-1. **Décodeur & Inspecteur BOLT11 à 7 Métadonnées** :
-   - Extrait les 7 champs cryptographiques : Network, Amount (sats/msats), Description/Memo, Expiry, Payment Hash (SHA-256), Payee Public Key (secp256k1), Route Hints.
-   - Vérifie la signature numérique ECDSA et le statut d'expiration.
-2. **Terminal POS & Caisse IA (Pay-per-Prompt)** :
-   - Catalogue d'articles (Café, Pâtisserie, Prompt IA, Génération d'Image IA).
-   - Calculateur automatique de Satoshis & Générateur de factures signées Bech32.
-3. **Règlement Off-Chain Instantané & Visualiseur de Canal** :
-   - Transfert de solde off-chain en direct avec animation fluide.
-   - Visualisation interactive de la capacité entre le marchand (Alice) et le client (Bob).
+1. **Detailed 7-Metadata Field BOLT11 Decoder & Inspector**:
+   - Extracts all 7 cryptographic fields: Network, Amount (sats/msats), Description/Memo, Expiry, Payment Hash (SHA-256), Payee Public Key (secp256k1), Route Hints.
+   - Cryptographically verifies ECDSA signatures and expiration status in real time on paste.
+2. **Merchant POS Terminal & AI Pay-per-Prompt Cart**:
+   - Product & AI service catalog (Espresso Coffee, Pastry, AI Prompt Token, AI Image Generation).
+   - Satoshi total calculator & Bech32 signed invoice builder.
+3. **Instant Off-Chain Settlement & Channel Visualizer**:
+   - Real-time off-chain balance transfer with smooth animations.
+   - Interactive channel capacity visualization between Merchant (Alice) and Customer (Bob).
 
 ---
 
-## 💻 Guide de Démarrage Rapide
+## 💻 Quick Start Guide
 
 ```bash
 cd ~/Music/lightning-tool
 
-# 1. Lancer l'application et le Dashboard Web (ouvre automatiquement le navigateur)
+# 1. Launch the Server & Web Dashboard UI (automatically opens browser)
 cargo run
 
-# 2. Exécuter la suite de tests unitaires et d'intégration
+# 2. Run unit and integration test suite
 cargo test
 ```
 
-### URL du Dashboard Web :
+### Web Dashboard URL:
 👉 **[http://localhost:3000/dashboard](http://localhost:3000/dashboard)**
 
 ---
 
-## 🎬 Vidéo de Démonstration (Demo Video)
+## 🎬 Demo Video & Presentation Guide
 
-🎥 **Fichier vidéo de démonstration incluse dans le dépôt** : `demo.webm` (ou [demo.webm](file:///home/dorine/Music/lightning-tool/demo.webm))
+🎥 **Demo Video Recording included in repository**: `demo.webm` (or [demo.webm](file:///home/dorine/Music/lightning-tool/demo.webm))
 
-1. **Démarrage** : Exécuter `cargo run` dans le terminal.
-2. **Étape 1 (Onglet POS & AI Cart)** : Sélectionner des articles IA et cliquer sur `⚡ Generate Cart BOLT11 Invoice`.
-3. **Étape 2 (Onglet Checkout & Inspector)** : Observer l'inspection automatique des **7 métadonnées cryptographiques**.
-4. **Étape 3 (Paiement Off-Chain)** : Cliquer sur `Settle Off-Chain Instantly`.
-5. **Étape 4 (Visualiseur)** : Observer le transfert des Satoshis sur le visualiseur de canal Alice ↔ Bob.
+1. **Startup**: Run `cargo run` in your terminal.
+2. **Step 1 (POS & AI Cart Tab)**: Select AI items and click `⚡ Generate Cart BOLT11 Invoice`.
+3. **Step 2 (Checkout & Inspector Tab)**: Observe the instant live decoding of **7 cryptographic metadata fields**.
+4. **Step 3 (Off-Chain Settlement)**: Click `Settle Off-Chain Instantly`.
+5. **Step 4 (Visualizer Tab)**: Watch the Satoshi balance transfer animation between Alice and Bob.
